@@ -1,0 +1,9 @@
+{
+    "name": "nir/user-service",
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    },
+    "require": {}
+}
