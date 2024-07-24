@@ -18,4 +18,8 @@ class UserService {
         $this->userRepository->save($data);
         $this->eventPublisher->publish('UserCreated', $data);
     }
+
+    public function getUsers() {
+        return $this->userRepository->getUsers();
+    }
 }

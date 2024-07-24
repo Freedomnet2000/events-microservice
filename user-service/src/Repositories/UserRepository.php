@@ -15,6 +15,10 @@ class UserRepository {
         file_put_contents($this->filePath, json_encode($users, JSON_PRETTY_PRINT));
     }
 
+    public function getUsers() {
+        return $this->readData();
+    }
+
     private function readData() {
         if (!file_exists($this->filePath)) {
             return [];

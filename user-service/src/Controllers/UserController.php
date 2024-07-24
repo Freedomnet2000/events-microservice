@@ -18,6 +18,10 @@ class UserController {
                 $this->userService->createUser($data);
                 echo json_encode(['message' => 'User created']);
                 break;
+            case 'GET':
+                $users = $this->userService->getUsers();
+                echo json_encode($users);
+                break;
         }
     }
 }
