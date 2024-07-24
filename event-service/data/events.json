@@ -1,0 +1,16 @@
+[
+    {
+        "type": "UserCreated",
+        "data": {
+            "username": "ewwwee",
+            "email": "rrr@example.com"
+        }
+    },
+    {
+        "type": "UserCreated",
+        "data": {
+            "username": "ewwwee",
+            "email": "rrr@example.com"
+        }
+    }
+]
