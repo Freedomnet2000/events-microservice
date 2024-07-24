@@ -19,8 +19,8 @@ class OrderService {
         $this->eventPublisher->publish('OrderPlaced', $data);
     }
 
-    public function cancelOrder($orderId) {
-        $this->orderRepository->delete($orderId);
-        $this->eventPublisher->publish('OrderCancelled', ['id' => $orderId]);
-    }
+    // public function cancelOrder($orderId) {
+    //     $this->orderRepository->delete($orderId);
+    //     $this->eventPublisher->publish('OrderCancelled', ['id' => $orderId]);
+    // }
 }

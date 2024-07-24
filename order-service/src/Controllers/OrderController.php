@@ -18,11 +18,11 @@ class OrderController {
                 $this->orderService->createOrder($data);
                 echo json_encode(['message' => 'Order placed']);
                 break;
-            case 'DELETE':
-                $orderId = $_GET['id'];
-                $this->orderService->cancelOrder($orderId);
-                echo json_encode(['message' => 'Order cancelled']);
-                break;
+            // case 'DELETE':
+            //     $orderId = $_GET['id'];
+            //     $this->orderService->cancelOrder($orderId);
+            //     echo json_encode(['message' => 'Order cancelled']);
+            //     break;
         }
     }
 }

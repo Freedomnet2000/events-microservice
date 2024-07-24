@@ -2,14 +2,8 @@
     "name": "nir/event-service",
     "autoload": {
         "psr-4": {
-            "Nir\\EventService\\": "src/"
+            "App\\": "src/"
         }
     },
-    "authors": [
-        {
-            "name": "Nir Home",
-            "email": "nirfridm@gmail.com"
-        }
-    ],
     "require": {}
 }

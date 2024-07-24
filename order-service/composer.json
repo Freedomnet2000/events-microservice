@@ -2,14 +2,8 @@
     "name": "nir/order-service",
     "autoload": {
         "psr-4": {
-            "Nir\\OrderService\\": "src/"
+            "App\\": "src/"
         }
     },
-    "authors": [
-        {
-            "name": "Nir Home",
-            "email": "nirfridm@gmail.com"
-        }
-    ],
     "require": {}
 }

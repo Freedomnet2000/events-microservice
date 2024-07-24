@@ -12,5 +12,47 @@
             "username": "ewwwee",
             "email": "rrr@example.com"
         }
+    },
+    {
+        "type": "UserCreated",
+        "data": {
+            "username": "ewwwee",
+            "email": "rrr@example.com"
+        }
+    },
+    {
+        "type": "UserCreated",
+        "data": {
+            "username": "ewwwee",
+            "email": "rrr@example.com"
+        }
+    },
+    {
+        "type": "UserCreated",
+        "data": {
+            "username": "ggggg",
+            "email": "rrr@example.com"
+        }
+    },
+    {
+        "type": "UserCreated",
+        "data": {
+            "username": "tttt",
+            "email": "rrr@example.com"
+        }
+    },
+    {
+        "type": "OrderPlaced",
+        "data": {
+            "username": "john_doe",
+            "email": "john@example.com"
+        }
+    },
+    {
+        "type": "OrderPlaced",
+        "data": {
+            "username": "john_doe",
+            "email": "john@example.com"
+        }
     }
 ]
