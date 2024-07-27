@@ -1,3 +1,10 @@
+# Php setup:
+Please make sure the following lines exist in php.ini:
+```
+extension=pgsql
+extension=pdo_pgsql
+```
+
 # How to run:
 1. Users service:
    
