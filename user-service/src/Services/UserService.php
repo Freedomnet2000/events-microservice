@@ -14,12 +14,20 @@ class UserService {
         $this->eventPublisher = new EventPublisher();
     }
 
-    public function createUser($data) {
-        $this->userRepository->save($data);
-        $this->eventPublisher->publish('UserCreated', $data);
+    public function createUser($email, $password) {
+        $actionResult = $this->userRepository->save($email, $password);
+        if (!empty($actionResult['error'])) {
+            return($actionResult);
+        } else {
+            $this->eventPublisher->publish('UserCreated', ['email ' => $email,'user_id' => $actionResult]);
+            return $actionResult;
+        }
     }
 
     public function getUsers() {
         return $this->userRepository->getUsers();
+    }
+    public function authenticateUser($email, $password) {
+        return $this->userRepository->verifyPassword($email, $password);
     }
 }

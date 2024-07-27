@@ -3,28 +3,92 @@
 namespace App\Repositories;
 
 class UserRepository {
-    private $filePath;
+    private $conn;
 
     public function __construct() {
-        $this->filePath = __DIR__ . '/../../data/users.json';
+        $host = 'dpg-cqh16bdds78s73atcddg-a.frankfurt-postgres.render.com';
+        $dbname = 'mydb_tjdr';
+        $user = 'nir';
+        $password = 'MIrQslZ0sz6u4cfrxTy0xwtFY3d1xR5x';
+
+        $connString = "host=$host dbname=$dbname user=$user password=$password";
+
+        $this->conn = pg_connect($connString);
+
+        if (!$this->conn) {
+            die("Could not connect to the database");
+        }
+
+        $this->createTableIfNotExists();
     }
 
-    public function save($data) {
-        $users = $this->readData();
-        $users[] = $data;
-        file_put_contents($this->filePath, json_encode($users, JSON_PRETTY_PRINT));
+    private function createTableIfNotExists() {
+        $query = "
+            CREATE TABLE IF NOT EXISTS users (
+                id SERIAL PRIMARY KEY,
+                email VARCHAR(255) NOT NULL UNIQUE,
+                password VARCHAR(255) NOT NULL
+            )
+        ";
+        pg_query($this->conn, $query);
+    }
+
+    public function save($email, $password) {
+        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+        $query = "
+            INSERT INTO users (email, password) 
+            VALUES ($1, $2)
+            RETURNING id
+        ";
+    
+        $result = @pg_query_params($this->conn, $query, [$email, $hashedPassword]);
+    
+        if (!$result) {
+            $error = pg_last_error($this->conn);
+            if (strpos($error, 'duplicate key value violates unique constraint') !== false) {
+                return ['error' => 'Email already exists'];
+            } else {
+                return ['error' => $error];
+            }
+        } else {
+            $row = pg_fetch_assoc($result);
+            return $row['id'];
+        }
     }
 
     public function getUsers() {
-        return $this->readData();
-    }
+        $query = "SELECT id, email FROM users";
+        $result = pg_query($this->conn, $query);
 
-    private function readData() {
-        if (!file_exists($this->filePath)) {
+        if (!$result) {
+            echo "Error fetching users: " . pg_last_error($this->conn);
             return [];
         }
 
-        $json = file_get_contents($this->filePath);
-        return json_decode($json, true);
+        $users = pg_fetch_all($result);
+        return $users ? $users : [];
+    }
+
+    public function getUserByEmail($email) {
+        $query = "SELECT id, email, password FROM users WHERE email = $1";
+        $result = pg_query_params($this->conn, $query, [$email]);
+
+        if (!$result) {
+            echo "Error fetching user: " . pg_last_error($this->conn);
+            return null;
+        }
+
+        $user = pg_fetch_assoc($result);
+        return $user;
+    }
+
+    public function verifyPassword($email, $password) {
+        $user = $this->getUserByEmail($email);
+
+        if ($user && password_verify($password, $user['password'])) {
+            return $user;
+        } else {
+            return false;
+        }
     }
 }

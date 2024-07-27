@@ -20,6 +20,7 @@ class OrderRepository {
         }
 
         $this->createTableIfNotExists();
+        // $this->updateTableStructure();
     }
 
     private function createTableIfNotExists() {
@@ -27,19 +28,33 @@ class OrderRepository {
             CREATE TABLE IF NOT EXISTS orders (
                 id SERIAL PRIMARY KEY,
                 data JSON NOT NULL,
-                status VARCHAR(50) DEFAULT 'active'
+                status VARCHAR(50) DEFAULT 'active',
+                user_id INT NOT NULL
             )
         ";
         pg_query($this->conn, $query);
     }
 
-    public function save($data) {
+    private function updateTableStructure() {
+        $result = pg_query($this->conn, "
+            SELECT column_name
+            FROM information_schema.columns
+            WHERE table_name='orders' AND column_name='user_id'
+        ");
+
+        if (pg_num_rows($result) == 0) {
+            $query = "ALTER TABLE orders ADD COLUMN user_id INT NOT NULL";
+            pg_query($this->conn, $query);
+        }
+    }
+
+    public function save($data, $userId) {
         $query = "
-            INSERT INTO orders (data, status) 
-            VALUES ($1, $2)
+            INSERT INTO orders (data, status, user_id) 
+            VALUES ($1, $2, $3)
             RETURNING id
         ";
-        $result = pg_query_params($this->conn, $query, [json_encode($data), 'active']);
+        $result = pg_query_params($this->conn, $query, [json_encode($data), 'active', $userId]);
 
         if (!$result) {
             echo "Error saving order: " . pg_last_error($this->conn);
@@ -50,7 +65,7 @@ class OrderRepository {
     }
 
     public function getOrders() {
-        $query = "SELECT id, data, status FROM orders";
+        $query = "SELECT id, data, status, user_id FROM orders";
         $result = pg_query($this->conn, $query);
 
         if (!$result) {
@@ -66,7 +81,7 @@ class OrderRepository {
     }
 
     public function getOrderById($id) {
-        $query = "SELECT id, data, status FROM orders WHERE id = $1";
+        $query = "SELECT id, data, status, user_id FROM orders WHERE id = $1";
         $result = pg_query_params($this->conn, $query, [$id]);
 
         if (!$result) {
@@ -81,17 +96,23 @@ class OrderRepository {
         return $order;
     }
 
-    public function updateOrderStatus($id, $status) {
-        $query = "UPDATE orders SET status = $1 WHERE id = $2";
-        $result = pg_query_params($this->conn, $query, [$status, $id]);
-
+    public function updateOrderStatus($id, $status, $userId) {
+        $query = "UPDATE orders SET status = $1 WHERE id = $2 and user_id = $3";
+        $result = pg_query_params($this->conn, $query, [$status, $id, $userId]);
         if (!$result) {
-            echo "Error updating order status: " . pg_last_error($this->conn);
+            return "Error updating order status: " . pg_last_error($this->conn);
+        } else {
+            $affectedRows = pg_affected_rows($result);
+            if ($affectedRows == 0) {
+                return "No rows were updated. Please check the ID and user ID.";
+            } else {
+                return "Order $id was cencelled successfully.";
+            }
         }
     }
 
     public function getOrdersByStatus($status) {
-        $query = "SELECT id, data, status FROM orders WHERE status = $1";
+        $query = "SELECT id, data, status, user_id FROM orders WHERE status = $1";
         $result = pg_query_params($this->conn, $query, [$status]);
 
         if (!$result) {
