@@ -3,28 +3,67 @@
 namespace App\Repositories;
 
 class EventRepository {
-    private $filePath;
+    private $conn;
 
     public function __construct() {
-        $this->filePath = __DIR__ . '/../../data/events.json';
+        $host = 'dpg-cqh16bdds78s73atcddg-a.frankfurt-postgres.render.com';
+        $dbname = 'mydb_tjdr';
+        $user = 'nir';
+        $password = 'MIrQslZ0sz6u4cfrxTy0xwtFY3d1xR5x';
+
+        $connString = "host=$host dbname=$dbname user=$user password=$password";
+
+        $this->conn = pg_connect($connString);
+
+        if (!$this->conn) {
+            die("Could not connect to the database");
+        }
+
+        $this->createTableIfNotExists();
     }
 
-    public function save($data) {
-        $events = $this->readData();
-        $events[] = $data;
-        file_put_contents($this->filePath, json_encode($events, JSON_PRETTY_PRINT));
+    private function createTableIfNotExists() {
+        $query = "
+            CREATE TABLE IF NOT EXISTS public.events (
+                id SERIAL PRIMARY KEY,
+                type VARCHAR(255) NOT NULL,
+                data JSON NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ";
+        pg_query($this->conn, $query);
+    }
+
+    public function save($type, $data) {
+        $query = "
+            INSERT INTO public.events (type, data) 
+            VALUES ($1, $2)
+            RETURNING id
+        ";
+        
+        $result = pg_query_params($this->conn, $query, [$type, json_encode($data)]);
+
+        if (!$result) {
+            echo "Error saving event: " . pg_last_error($this->conn);
+        } else {
+            $row = pg_fetch_assoc($result);
+            return $row['id'];
+        }
     }
 
     public function getEvents() {
-        return $this->readData();
-    }
+        $query = "SELECT id, type, data, created_at FROM public.events";
+        $result = pg_query($this->conn, $query);
 
-    private function readData() {
-        if (!file_exists($this->filePath)) {
+        if (!$result) {
+            echo "Error fetching events: " . pg_last_error($this->conn);
             return [];
         }
 
-        $json = file_get_contents($this->filePath);
-        return json_decode($json, true);
+        $events = pg_fetch_all($result);
+        return array_map(function($event) {
+            $event['data'] = json_decode($event['data'], true);
+            return $event;
+        }, $events ? $events : []);
     }
 }
