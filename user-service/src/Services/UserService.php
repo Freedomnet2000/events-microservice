@@ -19,7 +19,7 @@ class UserService {
         if (!empty($actionResult['error'])) {
             return($actionResult);
         } else {
-            $this->eventPublisher->publish('UserCreated', ['email ' => $email,'user_id' => $actionResult]);
+            $this->eventPublisher->publish('UserCreated', ['email ' => $email,'user_id' => $actionResult['userId']]);
             return $actionResult;
         }
     }

@@ -25,37 +25,41 @@ class OrderService {
         $response = curl_exec($ch);
         curl_close($ch);
 
-        $responseDecoded = json_decode($response, true);
-        
-        if ($responseDecoded["message"] !== 'User authenticated') {
-           die('Authentication failed');
-        }
-
-        return $responseDecoded;
+        return json_decode($response, true);
     }
 
     public function createOrder($data) {
         if (!isset($data['email']) || !isset($data['password']) || !isset($data['order'])) {
-            die('Invalid input');
+            return (['success' => false ,'massege' =>'Invalid input']);
         }
 
         $authenticatedUser = $this->getAuthenticatedUser($data['email'], $data['password']);
+        if (empty($authenticatedUser['success']) || $authenticatedUser['success'] === false) {
+            return $authenticatedUser;
+        }
         unset($data['password']);
         $orderId = $this->orderRepository->save($data['order'],$authenticatedUser['userId']);
         $this->eventPublisher->publish('OrderPlaced', $data);
-        return $orderId;
+        return ['success' => true ,'message' => 'Order placed', 'Order ID' => $orderId];
     }
 
     public function cancelOrder($data) {
         if (!isset($data['email']) || !isset($data['password']) || !isset($data['order_id'])) {
-            die('Invalid input');
+            return(['success' => false ,'massege' =>'Invalid input']);
         }
         $authenticatedUser = $this->getAuthenticatedUser($data['email'], $data['password']);
+        if (empty($authenticatedUser['success']) || $authenticatedUser['success'] === false) return $authenticatedUser;
+
         $orderId = $data['order_id'];
         $userId = $authenticatedUser['userId'];
         $actionResult = $this->orderRepository->updateOrderStatus($orderId, 'cancelled',$userId);
-        $this->eventPublisher->publish('OrderCancelled', ['id' => $orderId, 'actionResult' => $actionResult]);
-        return $actionResult;
+        if ($actionResult) {
+            $orderId = $actionResult['id'];
+            $this->eventPublisher->publish('OrderCancelled', ['order_id' => $orderId, 'user_id' => $userId]);
+            return ['success' => true , 'massege' =>"Order $orderId was cencelled successfully"];
+        } else {
+            return ['success' => false , 'massege' =>"No rows were updated. Please check the ID and user datails"];
+        }
     }
 }
 

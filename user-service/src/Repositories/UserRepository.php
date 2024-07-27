@@ -52,7 +52,7 @@ class UserRepository {
             }
         } else {
             $row = pg_fetch_assoc($result);
-            return $row['id'];
+            return ['userId' =>$row['id']];
         }
     }
 

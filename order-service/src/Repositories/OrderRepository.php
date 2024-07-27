@@ -103,11 +103,7 @@ class OrderRepository {
             return "Error updating order status: " . pg_last_error($this->conn);
         } else {
             $affectedRows = pg_affected_rows($result);
-            if ($affectedRows == 0) {
-                return "No rows were updated. Please check the ID and user ID.";
-            } else {
-                return "Order $id was cencelled successfully.";
-            }
+            return $affectedRows == 0 ? false : ['id' =>$id];
         }
     }
 

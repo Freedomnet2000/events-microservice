@@ -6,13 +6,13 @@ class EventListener {
     public function processEvent($event) {
         switch ($event['type']) {
             case 'UserCreated':
-                // קוד לטיפול באירוע יצירת משתמש
+                // Code to handle user creation event
                 break;
             case 'OrderPlaced':
-                // קוד לטיפול באירוע הנחת הזמנה
+                // Code to handle order placement event
                 break;
             case 'OrderCancelled':
-                // קוד לטיפול באירוע ביטול הזמנה
+                // Code to handle order cancellation event
                 break;
         }
     }

@@ -17,11 +17,11 @@ class OrderController {
         switch ($_SERVER['REQUEST_METHOD']) {
             case 'POST':
                 if (isset($data['action']) && $data['action'] === 'cancelOrder') {
-                    $actionResult = $this->orderService->cancelOrder($data);
-                    echo json_encode(['message' => $actionResult]);
+                    $actionResult = $this->orderService->cancelOrder($data);                 
+                    echo json_encode($actionResult);
                 } else {
-                    $orderId = $this->orderService->createOrder($data);
-                    echo json_encode(['message' => 'Order placed', 'Order ID' => $orderId]);
+                    $actionResult = $this->orderService->createOrder($data);
+                    echo json_encode($actionResult);
                 }
                 break;
         }
