@@ -29,10 +29,11 @@ class UserController {
     }
 
     private function createUser($data) {
+        $error = '';
         if (isset($data['email'], $data['password'])) {
-            $actionResult = $this->userService->createUser($data['email'], $data['password']);
-            if (!empty($actionResult['error'])) {
-                echo json_encode(['success' => false ,'message' => $actionResult['error']]);}
+            $actionResult = $this->userService->createUser($data['email'], $data['password'], $error);
+            if (!$actionResult) {
+                echo json_encode(['success' => false ,'message' => $error]);}
                 else {
                     echo json_encode(['success' => true ,'message' => 'User created. User ID :'.$actionResult['userId']]);
                 }
@@ -43,11 +44,12 @@ class UserController {
 
     private function authenticateUser($data) {
         if (isset($data['email'], $data['password'])) {
-            $authenticatedUser = $this->userService->authenticateUser($data['email'], $data['password']);
+            $error = '';
+            $authenticatedUser = $this->userService->authenticateUser($data['email'], $data['password'], $error);
             if ($authenticatedUser) {
                 echo json_encode(['success' => true,'message' => 'User authenticated','userId' =>$authenticatedUser['id']]);
             } else {
-                echo json_encode(['success' => false ,'message' => 'Invalid email or password'], JSON_THROW_ON_ERROR, 401);
+                echo json_encode(['success' => false ,'message' => $error], JSON_THROW_ON_ERROR, 401);
             }
         } else {
             echo json_encode(['success' => false ,'message' => 'Invalid input'], JSON_THROW_ON_ERROR, 400);

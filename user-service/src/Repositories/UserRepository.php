@@ -2,6 +2,8 @@
 
 namespace App\Repositories;
 
+use Error;
+
 class UserRepository {
     private $conn;
 
@@ -33,7 +35,7 @@ class UserRepository {
         pg_query($this->conn, $query);
     }
 
-    public function save($email, $password) {
+    public function save($email, $password, &$error) {
         $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
         $query = "
             INSERT INTO users (email, password) 
@@ -44,12 +46,13 @@ class UserRepository {
         $result = @pg_query_params($this->conn, $query, [$email, $hashedPassword]);
     
         if (!$result) {
-            $error = pg_last_error($this->conn);
-            if (strpos($error, 'duplicate key value violates unique constraint') !== false) {
-                return ['error' => 'Email already exists'];
+            $pgError = pg_last_error($this->conn);
+            if (strpos($pgError, 'duplicate key value violates unique constraint') !== false) {
+                $error = 'Email already exists';
             } else {
-                return ['error' => $error];
+                $error = $pgError;
             }
+            return false;
         } else {
             $row = pg_fetch_assoc($result);
             return ['userId' =>$row['id']];
