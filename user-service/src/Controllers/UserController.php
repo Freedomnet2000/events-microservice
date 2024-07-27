@@ -31,6 +31,10 @@ class UserController {
     private function createUser($data) {
         $error = '';
         if (isset($data['email'], $data['password'])) {
+            if (strlen($data['password']) < 6 ) {
+                echo json_encode(['success' => false ,'message' => 'password should be 5 charecters minimun']);
+                return;
+            }
             $actionResult = $this->userService->createUser($data['email'], $data['password'], $error);
             if (!$actionResult) {
                 echo json_encode(['success' => false ,'message' => $error]);}
@@ -45,11 +49,11 @@ class UserController {
     private function authenticateUser($data) {
         if (isset($data['email'], $data['password'])) {
             $error = '';
-            $authenticatedUser = $this->userService->authenticateUser($data['email'], $data['password'], $error);
+            $authenticatedUser = $this->userService->authenticateUser($data['email'], $data['password']);
             if ($authenticatedUser) {
                 echo json_encode(['success' => true,'message' => 'User authenticated','userId' =>$authenticatedUser['id']]);
             } else {
-                echo json_encode(['success' => false ,'message' => $error], JSON_THROW_ON_ERROR, 401);
+                echo json_encode(['success' => false ,'message' => 'user authentication failed'], JSON_THROW_ON_ERROR, 401);
             }
         } else {
             echo json_encode(['success' => false ,'message' => 'Invalid input'], JSON_THROW_ON_ERROR, 400);

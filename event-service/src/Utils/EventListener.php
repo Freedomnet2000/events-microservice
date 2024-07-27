@@ -3,7 +3,8 @@
 namespace App\Utils;
 
 class EventListener {
-    public function processEvent($event) {
+    public function processEvent($event, &$error) {
+        $error = '';
         switch ($event['type']) {
             case 'UserCreated':
                 // Code to handle user creation event
@@ -15,5 +16,6 @@ class EventListener {
                 // Code to handle order cancellation event
                 break;
         }
+        return true;
     }
 }

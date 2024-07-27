@@ -34,7 +34,7 @@ class EventRepository {
         pg_query($this->conn, $query);
     }
 
-    public function save($type, $data) {
+    public function save($type, $data, &$error) {
         $query = "
             INSERT INTO public.events (type, data) 
             VALUES ($1, $2)
@@ -44,7 +44,8 @@ class EventRepository {
         $result = pg_query_params($this->conn, $query, [$type, json_encode($data)]);
 
         if (!$result) {
-            echo "Error saving event: " . pg_last_error($this->conn);
+            $error = "Error saving event: " . pg_last_error($this->conn);
+            return false;
         } else {
             $row = pg_fetch_assoc($result);
             return $row['id'];

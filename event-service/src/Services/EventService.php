@@ -17,12 +17,14 @@ class EventService {
 
     }
 
-    public function handleEvent($event) {
+    public function handleEvent($event, &$error) {
+        $error = '';
         if (isset($event['type'], $event['data'])) {
-            $this->eventRepository->save($event['type'], $event['data']);
-            $this->eventListener->processEvent($event);
+            return $this->eventRepository->save($event['type'], $event['data'], $error) 
+                && $this->eventListener->processEvent($event, $error);
         } else {
-            echo json_encode(['message' => 'Invalid event structure'], JSON_THROW_ON_ERROR, 400);
+            $error = 'Invalid event structure';
+            return false;
         }
     }
 }

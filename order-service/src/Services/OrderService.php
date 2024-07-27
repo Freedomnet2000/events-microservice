@@ -14,7 +14,7 @@ class OrderService {
         $this->eventPublisher = new EventPublisher();
     }
 
-    private function getAuthenticatedUser($email, $password) {
+    private function getAuthenticatedUser($email, $password, &$error) {
         $fileds = ['email' => $email, 'password' => $password ,'action'=>'authenticate'];
         $ch = curl_init('http://localhost:8001/index.php');
         curl_setopt($ch, CURLOPT_POST, 1);
@@ -23,42 +23,60 @@ class OrderService {
         curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
 
         $response = curl_exec($ch);
+        // echo $response;
+        // exit();
+        // return;
         curl_close($ch);
-
-        return json_decode($response, true);
-    }
-
-    public function createOrder($data) {
-        if (!isset($data['email']) || !isset($data['password']) || !isset($data['order'])) {
-            return (['success' => false ,'massege' =>'Invalid input']);
+        if (!$response) {
+            $error = 'Could not authenticate';
+            return false;
         }
 
-        $authenticatedUser = $this->getAuthenticatedUser($data['email'], $data['password']);
-        if (empty($authenticatedUser['success']) || $authenticatedUser['success'] === false) {
-            return $authenticatedUser;
+        $response = json_decode($response, true);
+        if (!$response['success']) {
+            $error = $response['message'];
+            return false;
+        }
+        return $response;
+    }
+
+    public function createOrder($data, &$error) {
+        if (!isset($data['email']) || !isset($data['password']) || !isset($data['order'])) {
+            $error = 'Invalid input';
+            return false;
+        }
+
+        $authenticatedUser = $this->getAuthenticatedUser($data['email'], $data['password'], $error);
+        if (!$authenticatedUser) {
+            return false;
         }
         unset($data['password']);
         $orderId = $this->orderRepository->save($data['order'],$authenticatedUser['userId']);
         $this->eventPublisher->publish('OrderPlaced', $data);
-        return ['success' => true ,'message' => 'Order placed', 'Order ID' => $orderId];
+        return $orderId;
     }
 
-    public function cancelOrder($data) {
+    public function cancelOrder($data, &$error) {
         if (!isset($data['email']) || !isset($data['password']) || !isset($data['order_id'])) {
-            return(['success' => false ,'massege' =>'Invalid input']);
+            $error = 'Invalid input';
+            return false;
         }
-        $authenticatedUser = $this->getAuthenticatedUser($data['email'], $data['password']);
-        if (empty($authenticatedUser['success']) || $authenticatedUser['success'] === false) return $authenticatedUser;
+
+        $authenticatedUser = $this->getAuthenticatedUser($data['email'], $data['password'], $error);
+        if (!$authenticatedUser) {
+            return false;
+        }
 
         $orderId = $data['order_id'];
         $userId = $authenticatedUser['userId'];
-        $actionResult = $this->orderRepository->updateOrderStatus($orderId, 'cancelled',$userId);
+        $actionResult = $this->orderRepository->updateOrderStatus($orderId, 'cancelled', $userId, $error);
         if ($actionResult) {
             $orderId = $actionResult['id'];
             $this->eventPublisher->publish('OrderCancelled', ['order_id' => $orderId, 'user_id' => $userId]);
-            return ['success' => true , 'massege' =>"Order $orderId was cencelled successfully"];
+            return true;
         } else {
-            return ['success' => false , 'massege' =>"No rows were updated. Please check the ID and user datails"];
+            $error = 'No rows were updated. Please check the ID and user datails';
+            return false;
         }
     }
 }

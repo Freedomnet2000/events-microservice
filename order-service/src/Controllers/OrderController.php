@@ -12,16 +12,27 @@ class OrderController {
     }
 
     public function handleRequest() {
+        $error = '';
         $data = json_decode(file_get_contents('php://input'), true);
         
         switch ($_SERVER['REQUEST_METHOD']) {
             case 'POST':
                 if (isset($data['action']) && $data['action'] === 'cancelOrder') {
-                    $actionResult = $this->orderService->cancelOrder($data);                 
-                    echo json_encode($actionResult);
+                    $actionResult = $this->orderService->cancelOrder($data, $error);                 
+
+                    if (!$actionResult) {
+                        echo json_encode(['success' => false, 'message' => $error]);
+                    } else {
+                        echo json_encode(['success' => true, 'orderId' => $data['order_id']]);
+                    }
                 } else {
-                    $actionResult = $this->orderService->createOrder($data);
-                    echo json_encode($actionResult);
+                    $actionResult = $this->orderService->createOrder($data, $error);
+
+                    if (!$actionResult) {
+                        echo json_encode(['success' => false, 'message' => $error]);
+                    } else {
+                        echo json_encode(['success' => true, 'orderId' => $actionResult]);
+                    }
                 }
                 break;
         }

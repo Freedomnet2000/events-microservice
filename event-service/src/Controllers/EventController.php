@@ -12,11 +12,16 @@ class EventController {
     }
 
     public function handleRequest() {
+        $error = '';
         switch ($_SERVER['REQUEST_METHOD']) {
             case 'POST':
                 $data = json_decode(file_get_contents('php://input'), true);
-                $this->eventService->handleEvent($data);
-                echo json_encode(['message' => 'Event processed']);
+                $result = $this->eventService->handleEvent($data, $error);
+                if($result) {
+                    echo json_encode(['success' => true]);
+                } else {
+                    echo json_encode(['success' => false, 'message' => $error]);
+                }
                 break;
         }
     }

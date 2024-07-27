@@ -96,30 +96,15 @@ class OrderRepository {
         return $order;
     }
 
-    public function updateOrderStatus($id, $status, $userId) {
+    public function updateOrderStatus($id, $status, $userId, &$error) {
         $query = "UPDATE orders SET status = $1 WHERE id = $2 and user_id = $3";
         $result = pg_query_params($this->conn, $query, [$status, $id, $userId]);
         if (!$result) {
-            return "Error updating order status: " . pg_last_error($this->conn);
+            $error = "Error updating order status: " . pg_last_error($this->conn);
+            return false;
         } else {
             $affectedRows = pg_affected_rows($result);
             return $affectedRows == 0 ? false : ['id' =>$id];
         }
-    }
-
-    public function getOrdersByStatus($status) {
-        $query = "SELECT id, data, status, user_id FROM orders WHERE status = $1";
-        $result = pg_query_params($this->conn, $query, [$status]);
-
-        if (!$result) {
-            echo "Error fetching orders: " . pg_last_error($this->conn);
-            return [];
-        }
-
-        $orders = pg_fetch_all($result);
-        return array_map(function($order) {
-            $order['data'] = json_decode($order['data'], true);
-            return $order;
-        }, $orders ? $orders : []);
     }
 }
