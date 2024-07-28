@@ -6,8 +6,12 @@ extension=pdo_pgsql
 ```
 
 # DB connection setup:
-Replace the content of the file \config\PostgresqlConnect.php at every service 
-with the content that was provided privetly.
+Replace the content of the file,
+
+'Service_Root_Dir'\config\PostgresqlConnect.php 
+
+At every service, with the content that was provided privetly.
+
 
 
 # How to run:
