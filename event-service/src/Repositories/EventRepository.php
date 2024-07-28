@@ -6,10 +6,17 @@ class EventRepository {
     private $conn;
 
     public function __construct() {
-        $host = 'dpg-cqh16bdds78s73atcddg-a.frankfurt-postgres.render.com';
-        $dbname = 'mydb_tjdr';
-        $user = 'nir';
-        $password = 'MIrQslZ0sz6u4cfrxTy0xwtFY3d1xR5x';
+        $configPath = __DIR__ . '/../../config/PostgresqlConnect.php';
+
+        if (filesize($configPath) === 0) {
+            die("Configuration file is empty");
+        }
+
+        $config = require $configPath;
+        $host = $config['host'];
+        $dbname = $config['dbname'];
+        $user = $config['user'];
+        $password = $config['password'];
 
         $connString = "host=$host dbname=$dbname user=$user password=$password";
 
