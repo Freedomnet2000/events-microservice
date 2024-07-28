@@ -1,9 +1,14 @@
-# Php setup:
+# PHP setup:
 Please make sure the following lines exist in php.ini:
 ```
 extension=pgsql
 extension=pdo_pgsql
 ```
+
+# DB connection setup:
+Replace the content of the file \config\PostgresqlConnect.php at every service 
+with the content that was provided privetly.
+
 
 # How to run:
 1. Users service:
